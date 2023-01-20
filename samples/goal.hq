@@ -1,0 +1,19 @@
+// Declare qubits
+qubit q1, q2, q3;
+
+// Define a function for applying a quantum circuit
+operation apply_circuit(qubit[] qubits) {
+    H(qubits[0]);
+    CNOT(qubits[0], qubits[1]);
+    CZ(qubits[1], qubits[2]);
+    measure(qubits);
+    steaneCorrect(qubits);
+}
+
+// Call the function and pass in an array of qubits
+apply_circuit([q1, q2, q3]);
+
+// Repeat the above circuit several times using a loop
+for (int i = 0; i < 10; i++) {
+    apply_circuit([q1, q2, q3]);
+}
