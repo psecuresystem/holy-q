@@ -8,7 +8,7 @@ export default class ParenthesizedExpressionSyntax extends ExpressionSyntax {
 
   constructor(
     private readonly openParenthesisToken: Token,
-    private readonly expression: ExpressionSyntax,
+    public readonly expression: ExpressionSyntax,
     private readonly closeParenthesisToken: Token
   ) {
     super();

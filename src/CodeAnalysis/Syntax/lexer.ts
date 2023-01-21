@@ -115,6 +115,16 @@ export default class Lexer {
           value += ';';
           this.pointer += 1;
           break;
+        case '(':
+          value += '(';
+          this.pointer++;
+          kind = SyntaxKind.OPEN_BRACKET_TOKEN;
+          break;
+        case ')':
+          value += ')';
+          this.pointer++;
+          kind = SyntaxKind.CLOSE_BRACKET_TOKEN;
+          break;
         default:
           console.log(this.current == '\n');
           console.error(

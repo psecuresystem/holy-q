@@ -4,6 +4,7 @@ import BinaryExpressionSyntax from '../Syntax/BinaryExpressionSyntax';
 import ExpressionSyntax from '../Syntax/ExpressionSyntax';
 import GlobalScopeSyntax from '../Syntax/GlobalScopeSyntax';
 import LiteralExpressionSyntax from '../Syntax/LiteralExpressionSyntax';
+import ParenthesizedExpressionSyntax from '../Syntax/ParenthesizedExpressionSyntax';
 import UnaryExpressionSyntax from '../Syntax/UnaryExpressionSyntax';
 import { SyntaxKind } from '../Typings';
 import BoundBinaryExpression from './BoundBinaryExpression';
@@ -19,6 +20,10 @@ import Types from './Types';
 export default class Binder {
   bindExpression(syntax: ExpressionSyntax): BoundExpression {
     switch (syntax.kind) {
+      case SyntaxKind.PARENTHESIZED_EXPRESSION:
+        return this.bindParenthesizedExpression(
+          syntax as ParenthesizedExpressionSyntax
+        );
       case SyntaxKind.LITERAL_EXPRESSION:
         return this.bindLiteralExpression(syntax as LiteralExpressionSyntax);
       case SyntaxKind.UNARY_EXPRESSION:
@@ -92,5 +97,9 @@ export default class Binder {
       expressions.push(this.bindExpression(expression));
     }
     return new BoundGlobalScopeExpression(expressions);
+  }
+
+  bindParenthesizedExpression(syntax: ParenthesizedExpressionSyntax) {
+    return this.bindExpression(syntax.expression);
   }
 }
