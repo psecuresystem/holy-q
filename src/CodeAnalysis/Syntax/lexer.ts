@@ -110,7 +110,13 @@ export default class Lexer {
             kind = SyntaxKind.EQUALS_EQUALS_TOKEN;
           }
           break;
+        case ';':
+          kind = SyntaxKind.END_OF_STATEMENT_TOKEN;
+          value += ';';
+          this.pointer += 1;
+          break;
         default:
+          console.log(this.current == '\n');
           console.error(
             `%c Undefined Token ${this.current} Found at Position ${this.pointer}`,
             'color: #ff0000'

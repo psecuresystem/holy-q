@@ -1,6 +1,7 @@
 import BoundBinaryExpression from './Binding/BoundBinaryExpression';
 import BoundBinaryOperatorKind from './Binding/BoundBinaryOperatorKind';
 import BoundExpression from './Binding/BoundExpression';
+import BoundGlobalScopeExpression from './Binding/BoundGlobalScopeExpression';
 import BoundLiteralExpression from './Binding/BoundLiteralExpression';
 import BoundUnaryExpression from './Binding/BoundUnaryExpression';
 import BoundUnaryOperatorKind from './Binding/BoundUnaryOperatorKind';
@@ -13,7 +14,7 @@ export default class Evaluator {
   }
 
   private evaluateExpression(expression: BoundExpression): any {
-    if (expression instanceof BoundLiteralExpression) return expression.value;
+    if (expression instanceof BoundLiteralExpression) return +expression.value;
     if (expression instanceof BoundUnaryExpression) {
       let operand = this.evaluateExpression(expression.operand);
 
@@ -50,6 +51,16 @@ export default class Evaluator {
         default:
           throw new Error(`Unexpected binary operator ${expression.operator}`);
       }
+    }
+    if (expression instanceof BoundGlobalScopeExpression) {
+      const callStack = [];
+      for (const expr of expression.expressions) {
+        callStack.push(this.evaluateExpression(expr));
+      }
+      for (const result of callStack) {
+        console.log(result);
+      }
+      return;
     }
   }
 }

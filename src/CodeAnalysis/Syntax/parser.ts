@@ -6,6 +6,7 @@ import {
 } from '../Utils/precedence';
 import BinaryExpressionSyntax from './BinaryExpressionSyntax';
 import ExpressionSyntax from './ExpressionSyntax';
+import GlobalScopeSyntax from './GlobalScopeSyntax';
 import Lexer from './lexer';
 import LiteralExpressionSyntax from './LiteralExpressionSyntax';
 import ParenthesizedExpressionSyntax from './ParenthesizedExpressionSyntax';
@@ -16,7 +17,9 @@ import UnaryExpressionSyntax from './UnaryExpressionSyntax';
 
 export default class Parser {
   tokens: Token[];
+  private _statement: Token[] = [];
   pointer: number = 0;
+  eof?: Token;
   constructor(private readonly text: string) {
     const lexer = new Lexer(text);
     const tokens = lexer.lex();
@@ -26,10 +29,10 @@ export default class Parser {
   }
 
   get currentToken(): Token {
-    if (this.pointer >= this.tokens.length) {
-      return this.tokens[this.tokens.length - 1];
+    if (this.pointer >= this._statement.length) {
+      return this._statement[this._statement.length - 1];
     }
-    return this.tokens[this.pointer];
+    return this._statement[this.pointer];
   }
 
   nextToken(): Token {
@@ -51,10 +54,37 @@ export default class Parser {
     }
   }
 
+  *getStatements(): IterableIterator<Token[]> {
+    let statement: Token[] = [];
+    for (const token of this.tokens) {
+      if (token.kind == SyntaxKind.END_OF_STATEMENT_TOKEN) {
+        yield statement;
+        statement = [];
+      } else if (token.kind == SyntaxKind.END_OF_FILE_TOKEN) {
+        this.eof = token;
+        if (statement.length == 0) return;
+        return yield statement;
+      } else {
+        statement.push(token);
+      }
+    }
+  }
+
   parse() {
-    let expression = this.parseExpression();
-    let endOfFileToken = this.match(SyntaxKind.END_OF_FILE_TOKEN);
-    return new SyntaxTree(expression, endOfFileToken);
+    let expressions = this.parseStatements();
+    const scope = new GlobalScopeSyntax(expressions);
+    return new SyntaxTree(scope, this.eof!);
+  }
+
+  parseStatements(): ExpressionSyntax[] {
+    const expressions = [];
+    for (let statement of this.getStatements()) {
+      this._statement = statement;
+      this.pointer = 0;
+      const expression = this.parseExpression();
+      expressions.push(expression);
+    }
+    return expressions;
   }
 
   parseExpression(parentPrecedence = 0): ExpressionSyntax {

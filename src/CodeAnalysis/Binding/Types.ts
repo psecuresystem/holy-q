@@ -1,2 +1,2 @@
-type Types = 'number' | 'string' | 'boolean';
+type Types = 'number' | 'string' | 'boolean' | 'scope';
 export default Types;
