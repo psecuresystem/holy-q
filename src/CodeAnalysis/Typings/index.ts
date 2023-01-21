@@ -22,6 +22,7 @@ export enum SyntaxKind {
   BINARY_EXPRESSION = 'BINARY_EXPRESSION',
   EQUALS_EQUALS_TOKEN = 'EQUALS_EQUALS_TOKEN',
   BANG_EQUALS_TOKEN = 'BANG_EQUALS_TOKEN',
+  SOME_SPACE_TOKEN = 'SOME_SPACE_TOKEN',
 }
 
 export type operators = '+' | '-' | '*' | '/';

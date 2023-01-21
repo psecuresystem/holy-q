@@ -48,6 +48,12 @@ export default class Lexer {
           }
           kind = SyntaxKind.WHITESPACE_TOKEN;
           break;
+        case '\n':
+        case '\t':
+        case '\r':
+          kind = SyntaxKind.WHITESPACE_TOKEN;
+          this.pointer += 1;
+          break;
         case '+':
           value += '+';
           this.pointer++;
