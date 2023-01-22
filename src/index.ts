@@ -6,7 +6,8 @@
 // import GlobalScopeSyntax from './CodeAnalysis/Syntax/GlobalScopeSyntax';
 // import SyntaxTree from './CodeAnalysis/Syntax/SyntaxTree';
 
-import Scalar from './QuantumComputing/Math/Scalar';
+import ComplexNumber from './QuantumComputing/Math/ComplexNumber';
+import RealNumber from './QuantumComputing/Math/RealNumber';
 import Vector from './QuantumComputing/Math/Vector';
 
 // export const reporter = new Reporter();
@@ -26,10 +27,24 @@ import Vector from './QuantumComputing/Math/Vector';
 // main('./samples/expression.hq');
 
 function main() {
-  const sca1 = Scalar.fromInt(10);
-  const sca2 = Scalar.fromInt(4);
-  const sca3 = Scalar.fromInt(5);
-  console.log(`${sca1.multiply(sca2).multiply(sca3)}`);
+  const sca1 = new ComplexNumber(
+    new Vector([
+      new RealNumber(1),
+      new RealNumber(2, 5),
+      new RealNumber(0),
+      new RealNumber(0),
+    ])
+  );
+  const sca2 = ComplexNumber.fromInt(new RealNumber(4));
+  const sca3 = new ComplexNumber(
+    new Vector([
+      new RealNumber(3),
+      new RealNumber(9),
+      new RealNumber(7, 2),
+      new RealNumber(0),
+    ])
+  );
+  console.log('sca1.multiply(sca2)', `${sca1.multiply(sca2).multiply(sca3)}`);
 }
 
 main();

@@ -1,7 +1,9 @@
-import Scalar from './Scalar';
+import ComplexNumber from './ComplexNumber';
+import Number from './Number';
+import RealNumber from './RealNumber';
 
 type productTypes = 'dot' | 'tensor' | 'normal';
-export default class Vector<T extends number | Scalar = number> {
+export default class Vector<T extends Number = RealNumber> {
   constructor(private readonly items: T[]) {}
 
   get allItems(): T[] {
@@ -39,9 +41,9 @@ export default class Vector<T extends number | Scalar = number> {
     }
   }
 
-  add(other: Vector<any>): Vector<any> {
+  add(other: Vector<T>): Vector<T> {
     let itemIdx = 0;
-    const sumArray = [];
+    const sumArray: T[] = [];
     if (other.allItems.length !== this.items.length) {
       if (other.allItems.length > this.allItems.length) {
         this.fill(this.getZero(), other.allItems.length - this.allItems.length);
@@ -60,24 +62,18 @@ export default class Vector<T extends number | Scalar = number> {
     for (const item of other.getItems()) {
       let thisItem = this.getItem(itemIdx);
       let sum;
-      if (typeof item == 'number' && typeof thisItem == 'number') {
-        sum = item + thisItem;
-      } else if (thisItem instanceof Scalar && item instanceof Scalar) {
-        sum = thisItem.add(item);
-      } else {
-        throw new Error('Unsupported Vector Type');
-      }
+      sum = thisItem.add(item);
 
-      sumArray.push(sum);
+      sumArray.push(sum as T);
       itemIdx++;
     }
 
     return new Vector(sumArray);
   }
 
-  sub(other: Vector<any>): Vector<any> {
+  sub(other: Vector<T>): Vector<T> {
     let itemIdx = 0;
-    const diffArray = [];
+    const diffArray: T[] = [];
     if (other.allItems.length !== this.items.length) {
       if (other.allItems.length > this.allItems.length) {
         this.fill(this.getZero(), other.allItems.length - this.allItems.length);
@@ -96,15 +92,9 @@ export default class Vector<T extends number | Scalar = number> {
     for (const item of other.getItems()) {
       let thisItem = this.getItem(itemIdx);
       let diff;
-      if (typeof item == 'number' && typeof thisItem == 'number') {
-        diff = item - thisItem;
-      } else if (thisItem instanceof Scalar && item instanceof Scalar) {
-        diff = thisItem.sub(item);
-      } else {
-        throw new Error('Unsupported Vector Type');
-      }
+      diff = item.subtract(thisItem);
 
-      diffArray.push(diff);
+      diffArray.push(diff as T);
       itemIdx++;
     }
 
@@ -112,11 +102,16 @@ export default class Vector<T extends number | Scalar = number> {
   }
 
   getZero(): T {
-    if (typeof this.allItems?.[0] == 'number') return 0 as T;
-    return Scalar.fromEmpty() as T;
+    if (this.items?.[0] instanceof ComplexNumber) {
+      return ComplexNumber.fromEmpty() as unknown as T;
+    }
+    return Number.fromEmpty() as T;
   }
 
-  multiply(other: Vector, type: productTypes = 'normal'): Vector | Scalar | T {
+  multiply(
+    other: Vector<Number>,
+    type: productTypes = 'normal'
+  ): Vector<Number> | Number {
     if (other.allItems.length !== this.items.length) {
       if (other.allItems.length > this.allItems.length) {
         this.fill(this.getZero(), other.allItems.length - this.allItems.length);
@@ -134,93 +129,49 @@ export default class Vector<T extends number | Scalar = number> {
     return this.dotProduct(other);
   }
 
-  divide(other: Vector<any>): Vector<any> {
+  divide(other: Vector<Number>): Vector<Number> {
     let product = [];
     let itemIdx = 0;
     for (const thisItem of this.getItems()) {
-      if (
-        thisItem instanceof Scalar &&
-        other.items[itemIdx] instanceof Scalar
-      ) {
-        product.push(thisItem.multiply(other.items[itemIdx]));
-      } else if (
-        typeof thisItem == 'number' ||
-        typeof other.items[itemIdx] == 'number'
-      ) {
-        product.push(+thisItem / other.items[itemIdx]);
-      } else {
-        throw new Error('Vector Type Mismatch');
-      }
-
+      product.push(thisItem.multiply(other.items[itemIdx]));
       itemIdx++;
     }
     return new Vector(product);
   }
 
-  private dotProduct(other: Vector<any>): T {
+  private dotProduct(other: Vector<Number>): Number {
     let sum;
     let itemIdx = 0;
-    if (
-      typeof this.getItem(itemIdx) === 'number' &&
-      typeof this.getItem(0) === 'number'
-    ) {
-      sum = 0;
-    } else if (
-      this.getItem(itemIdx) instanceof Scalar &&
-      this.getItem(0) instanceof Scalar
-    ) {
-      sum = Scalar.fromEmpty();
-    } else {
-      throw new Error('Invalid Number Type');
-    }
+
+    sum = Number.fromEmpty();
+
     for (const otherItem of other.getItems()) {
       let thisItem = this.getItem(itemIdx);
-      if (typeof sum == 'number') {
-        sum += otherItem * +thisItem;
-      } else {
-        sum = sum.add((otherItem as Scalar).multiply(thisItem as Scalar));
-      }
+
+      sum = sum.add(otherItem.multiply(thisItem));
       itemIdx++;
     }
-    return sum as T;
+    return sum as Number;
   }
 
-  private tensorProduct(other: Vector<any>): Vector<any> {
+  private tensorProduct(other: Vector<Number>): Vector<Number> {
     let product = [];
     for (const thisItem of this.getItems()) {
       for (const otherItem of other.getItems()) {
         let value;
-        if (typeof otherItem == 'number' && typeof thisItem == 'number') {
-          value = otherItem * thisItem;
-        } else if (thisItem instanceof Scalar && otherItem instanceof Scalar) {
-          value = thisItem.multiply(otherItem);
-        } else {
-          throw new Error('Unsupported Vector Type');
-        }
+        value = thisItem.multiply(otherItem);
         product.push(value);
       }
     }
     return new Vector(product);
   }
 
-  private normalProduct(other: Vector<any>): Vector<any> {
+  private normalProduct(other: Vector<Number>): Vector<Number> {
     let product = [];
     let itemIdx = 0;
     for (const thisItem of this.getItems()) {
       let value;
-      if (
-        typeof other.items[itemIdx] == 'number' &&
-        typeof thisItem == 'number'
-      ) {
-        value = other.items[itemIdx] * thisItem;
-      } else if (
-        thisItem instanceof Scalar &&
-        other.items[itemIdx] instanceof Scalar
-      ) {
-        value = thisItem.multiply(other.items[itemIdx]);
-      } else {
-        throw new Error('Unsupported Vector Type');
-      }
+      value = thisItem.multiply(other.items[itemIdx]);
       product.push(value);
       itemIdx++;
     }

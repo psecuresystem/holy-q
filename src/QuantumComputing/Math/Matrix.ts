@@ -1,8 +1,9 @@
+import Number from './Number';
 import Vector from './Vector';
 
 export default class Matrix {
   constructor(
-    private readonly rows: number[][],
+    private readonly rows: Number[][],
     public readonly size: [number, number]
   ) {
     if (this.rows.length !== size[0] || this.rows?.[0].length !== size[1]) {
@@ -21,7 +22,7 @@ Invalid Matrix Size.
   }
 
   static fromVector(
-    vector: Vector,
+    vector: Vector<Number>,
     orientation: 'vertical' | 'horizontal'
   ): Matrix {
     if (orientation == 'horizontal') {
@@ -34,26 +35,30 @@ Invalid Matrix Size.
     }
   }
 
-  getItem(row: number, column: number): number {
+  getItem(row: number, column: number): Number {
     if (row >= this.size[0]) throw new Error(`Row doesn't exist`);
-    if (column >= this.size[1]) throw new Error(`Column doesn't exist`);
+    if (column >= this.size[1]) {
+      console.log('column', column);
+      console.log('this.size', this.size);
+      throw new Error(`Column doesn't exist`);
+    }
     return this.rows[row][column];
   }
 
-  setItem(row: number, column: number, value: number) {
+  setItem(row: number, column: number, value: Number) {
     if (row >= this.size[0]) throw new Error(`Row doesn't exist`);
     if (column >= this.size[1]) throw new Error(`Column doesn't exist`);
     this.rows[row][column] = value;
     return;
   }
 
-  *getRows(): IterableIterator<number[]> {
+  *getRows(): IterableIterator<Number[]> {
     for (const row of this.rows) {
       yield row;
     }
   }
 
-  *getColumns(): IterableIterator<number[]> {
+  *getColumns(): IterableIterator<Number[]> {
     for (let columnIdx = 0; columnIdx < this.rows?.[0].length; columnIdx++) {
       const column = [];
       for (let rowIdx = 0; rowIdx < this.rows.length; rowIdx++) {
@@ -63,7 +68,7 @@ Invalid Matrix Size.
     }
   }
 
-  getRow(row: number): number[] {
+  getRow(row: number): Number[] {
     if (row >= this.size[0]) throw new Error(`Row doesn't exist`);
     return this.rows[row];
   }
@@ -94,27 +99,27 @@ Invalid Matrix Size.
 
   multiply(other: Matrix): Matrix {
     if (other.size[0] !== this.size[1]) throw new Error(`Size Mismatch`);
-    const product: number[][] = [];
+    const product: Number[][] = [];
     let rowIdx = 0;
     for (const row of this.getRows()) {
       product.push([]);
       for (const column of other.getColumns()) {
-        const rowVector = new Vector(row);
-        const columnVector = new Vector(column);
+        const rowVector = new Vector<Number>(row);
+        const columnVector = new Vector<Number>(column);
         const multiplicationResult = rowVector.multiply(columnVector, 'dot');
-        product[rowIdx].push(+multiplicationResult);
+        product[rowIdx].push(multiplicationResult as Number);
       }
       rowIdx++;
     }
     return new Matrix(product, [this.size[0], other.size[1]]);
   }
 
-  flatten(): Vector {
+  flatten(): Vector<Number> {
     let finalData = [];
     for (const row of this.getRows()) {
       finalData.push(...row);
     }
-    return new Vector(finalData);
+    return new Vector<Number>(finalData);
   }
 
   static transpose(matrix: Matrix) {
