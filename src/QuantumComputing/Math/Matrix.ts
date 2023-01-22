@@ -3,7 +3,7 @@ import Vector from './Vector';
 export default class Matrix {
   constructor(
     private readonly rows: number[][],
-    private readonly size: [number, number]
+    public readonly size: [number, number]
   ) {
     if (this.rows.length !== size[0] || this.rows?.[0].length !== size[1]) {
       console.log('this.rows', this.rows);
@@ -38,6 +38,13 @@ Invalid Matrix Size.
     if (row >= this.size[0]) throw new Error(`Row doesn't exist`);
     if (column >= this.size[1]) throw new Error(`Column doesn't exist`);
     return this.rows[row][column];
+  }
+
+  setItem(row: number, column: number, value: number) {
+    if (row >= this.size[0]) throw new Error(`Row doesn't exist`);
+    if (column >= this.size[1]) throw new Error(`Column doesn't exist`);
+    this.rows[row][column] = value;
+    return;
   }
 
   *getRows(): IterableIterator<number[]> {
@@ -102,7 +109,15 @@ Invalid Matrix Size.
     return new Matrix(product, [this.size[0], other.size[1]]);
   }
 
-  static inverse(matrix: Matrix) {
+  flatten(): Vector {
+    let finalData = [];
+    for (const row of this.getRows()) {
+      finalData.push(...row);
+    }
+    return new Vector(finalData);
+  }
+
+  static transpose(matrix: Matrix) {
     const newMatrix = new Array(matrix.size[0]).fill(
       new Array(matrix.size[1]).fill(0)
     );
