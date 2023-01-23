@@ -32,4 +32,16 @@ export default class Qubit {
     );
     return new Qubit(result.flatten());
   }
+
+  measure(): 1 | 0 {
+    let randomNumber = Math.random();
+    let zeroProb =
+      Math.round(
+        Math.abs(this.state.allItems[0].square().computedValue) * 1000
+      ) / 1000;
+    if (randomNumber > zeroProb) {
+      return 1;
+    }
+    return 0;
+  }
 }

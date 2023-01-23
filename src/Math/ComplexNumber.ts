@@ -27,6 +27,10 @@ export default class ComplexNumber extends Number {
     );
   }
 
+  get computedValue() {
+    return this.value.getItem(0).computedValue;
+  }
+
   toString() {
     let finalString = '';
     let isFirst = true;
