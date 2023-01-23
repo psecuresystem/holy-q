@@ -3,6 +3,7 @@ import Matrix from './Math/Matrix';
 import Number from './Math/Number';
 import RealNumber from './Math/RealNumber';
 import Vector from './Math/Vector';
+import QuantumGate from './Quantum/QuantumGate';
 
 export default class Qubit {
   constructor(public readonly state: Vector<Number>) {
@@ -25,8 +26,10 @@ export default class Qubit {
     );
   }
 
-  apply(gate: Matrix): Qubit {
-    const result = gate.multiply(Matrix.fromVector(this.state, 'vertical'));
+  apply(gate: QuantumGate): Qubit {
+    const result = gate.matrix.multiply(
+      Matrix.fromVector(this.state, 'vertical')
+    );
     return new Qubit(result.flatten());
   }
 }
