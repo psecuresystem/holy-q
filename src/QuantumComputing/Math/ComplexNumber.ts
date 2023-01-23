@@ -52,7 +52,7 @@ export default class ComplexNumber extends Number {
   }
 
   add(other: ComplexNumber) {
-    return new ComplexNumber(this.value.add(other.value));
+    return new ComplexNumber(this.value.add(other.value)).reduce();
   }
 
   subtract(other: ComplexNumber) {
@@ -77,6 +77,10 @@ export default class ComplexNumber extends Number {
         this.getEqualIndexes(operatorMatrix)
       ) as Vector<RealNumber>
     );
+  }
+
+  square(): ComplexNumber {
+    return this.multiply(this);
   }
 
   private getEqualIndexes(matrix: Matrix) {
@@ -131,6 +135,19 @@ export default class ComplexNumber extends Number {
     if (final.slice(4).reduce((acc, val) => acc.add(val)) == new RealNumber(0))
       final = final.slice(0, 4);
     return new Vector(final);
+  }
+
+  private reduce() {
+    if (
+      this.value.allItems
+        .slice(4)
+        .reduce((acc, val) => acc.add(val) as RealNumber).computedValue == 0
+    ) {
+      const newVector = [];
+      newVector.push(...this.value.allItems.slice(0, 4));
+      return new ComplexNumber(new Vector(newVector));
+    }
+    return this;
   }
 
   divide(other: ComplexNumber) {

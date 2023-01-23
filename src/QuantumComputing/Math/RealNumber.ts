@@ -80,6 +80,10 @@ export default class RealNumber extends Number {
     return new RealNumber(this.denominator, this.numerator).reduce();
   }
 
+  square(): RealNumber {
+    return this.multiply(this) as RealNumber;
+  }
+
   static fromEmpty(): RealNumber {
     return new RealNumber(0);
   }

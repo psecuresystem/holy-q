@@ -1,4 +1,6 @@
+import ComplexNumber from './ComplexNumber';
 import Number from './Number';
+import RealNumber from './RealNumber';
 import Vector from './Vector';
 
 export default class Matrix {
@@ -112,6 +114,18 @@ Invalid Matrix Size.
       rowIdx++;
     }
     return new Matrix(product, [this.size[0], other.size[1]]);
+  }
+
+  scalarMultiply(other: ComplexNumber): Matrix {
+    const finalMatrix: Number[][] = [];
+    for (const row of this.getRows()) {
+      let finalRow = [];
+      for (const col of row) {
+        finalRow.push(col.multiply(other));
+      }
+      finalMatrix.push(finalRow);
+    }
+    return new Matrix(finalMatrix, this.size);
   }
 
   flatten(): Vector<Number> {

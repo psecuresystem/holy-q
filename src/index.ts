@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import Binder from './CodeAnalysis/Binding/Binder';
 import Evaluator from './CodeAnalysis/Evaluator';
 import Reporter from './CodeAnalysis/Report';
-import BinaryExpressionSyntax from './CodeAnalysis/Syntax/BinaryExpressionSyntax';
 import GlobalScopeSyntax from './CodeAnalysis/Syntax/GlobalScopeSyntax';
 import SyntaxTree from './CodeAnalysis/Syntax/SyntaxTree';
 
