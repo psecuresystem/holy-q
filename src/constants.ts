@@ -1,0 +1,25 @@
+import RealNumber from './Math/RealNumber';
+
+export const primes = [
+  new RealNumber(1),
+  new RealNumber(2),
+  new RealNumber(3),
+  new RealNumber(5),
+  new RealNumber(7),
+  new RealNumber(11),
+  new RealNumber(13),
+  new RealNumber(17),
+  new RealNumber(19),
+  new RealNumber(23),
+  new RealNumber(29),
+  new RealNumber(31),
+  new RealNumber(37),
+  new RealNumber(41),
+  new RealNumber(43),
+  new RealNumber(47),
+  new RealNumber(53),
+  new RealNumber(59),
+  new RealNumber(61),
+  new RealNumber(67),
+  new RealNumber(71),
+];

@@ -1,19 +1,83 @@
-// Declare qubits
-qubit q1, q2, q3;
+import errorCorrection
 
-// Define a function for applying a quantum circuit
-operation apply_circuit(qubit[] qubits) {
-    H(qubits[0]);
-    CNOT(qubits[0], qubits[1]);
-    CZ(qubits[1], qubits[2]);
-    measure(qubits);
-    steaneCorrect(qubits);
+// Defining a new gate 'MyGate' that applies a rotation of pi/4 around the Y-axis
+gate MyGate(qubit: Qubit) {
+    Ry(qubit, pi/4)
 }
 
-// Call the function and pass in an array of qubits
-apply_circuit([q1, q2, q3]);
+// Defining a new gate 'MyMatrixGate' that applies a custom matrix transformation to a qubit
+gate MyMatrixGate(qubit: Qubit, matrix: Matrix) {
+    if(!isReversible(matrix)){
+        throw "Matrix is not reversible"
+    }
+    applyMatrix(qubit, matrix)
+}
 
-// Repeat the above circuit several times using a loop
-for (int i = 0; i < 10; i++) {
-    apply_circuit([q1, q2, q3]);
+circuit MyCircuit(qubits: Qubits) {
+    // Applying the Shor code to the qubits
+    shorCode(qubits)
+    H(qubits[0])
+    CNOT(qubits[0], qubits[1])
+    // Measuring the state of the qubits using quantum state tomography
+    let densityMatrix = stateTomography(qubits)
+}
+
+// Defining a function 'MyFunction' that takes in a qubit and applies a X-gate to it
+function MyFunction(qubit: Qubit) {
+    ApplyX(qubit)
+}
+
+// Defining a function 'MyAdvancedFunction' that takes in two qubits and applies a X-gate or Y-gate depending on a condition
+function MyAdvancedFunction(qubit1: Qubit, qubit2: Qubit, condition: bool) {
+    if (condition) {
+        ApplyX(qubit1)
+    } else {
+        ApplyY(qubit2)
+    }
+}
+
+// Defining an array of qubits
+let qubitsArray = [Qubit(), Qubit(), Qubit()]
+
+// Applying the MyGate to the first qubit in the array
+MyGate(qubitsArray[0])
+
+// Applying a custom matrix transformation to the second qubit in the array
+MyMatrixGate(qubitsArray[1], [[0,1],[1,0]])
+
+// Using the MyCircuit on the qubitsArray
+MyCircuit(qubitsArray)
+
+// Using the MyFunction on the third qubit in the array
+MyFunction(qubitsArray[2])
+
+// Using the MyAdvancedFunction on the qubits in the array
+MyAdvancedFunction(qubitsArray[0], qubitsArray[1], true)
+
+// Generating a random number using QRNG
+let randomNumber = qrng()
+
+// Using the Grover's algorithm to find the solution to an optimization problem
+groverOptimization(oracle: function, qubitsArray)
+
+// Using the QAOA to find the solution to an optimization problem
+qaoaOptimization(hamiltonian: function, qubitsArray, steps: 5)
+
+// Using a QSVM to classify data
+let data = [[1,2,3], [4,5,6], [7,8,9]]
+qsvmClassification(data, qubitsArray)
+
+// Using a QPCA to perform dimensionality reduction
+qpcaDimReduction(data, qubitsArray)
+
+
+log("This is a log message")
+debug("This is a debug log message")
+info("This is an info log message")
+warning("This is a warning log message")
+error("This is an error log message")
+log("This is a log message with custom color", color: "green")
+let x = 5
+if (x > 0) {
+    log("x is greater than 0")
 }
