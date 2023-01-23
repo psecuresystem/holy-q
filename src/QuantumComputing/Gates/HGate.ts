@@ -1,7 +1,6 @@
-import ComplexNumber from '../Math/ComplexNumber';
-import Matrix from '../Math/Matrix';
-import RealNumber from '../Math/RealNumber';
-import Vector from '../Math/Vector';
+import ComplexNumber from '../../Math/ComplexNumber';
+import Matrix from '../../Math/Matrix';
+import RealNumber from '../../Math/RealNumber';
 import QuantumGate from './QuantumGate';
 
 export default class HGate extends QuantumGate {

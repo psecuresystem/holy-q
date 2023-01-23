@@ -1,4 +1,4 @@
-import RealNumber from './QuantumComputing/Math/RealNumber';
+import RealNumber from './Math/RealNumber';
 
 export const primes = [
   new RealNumber(1),

@@ -1,9 +1,9 @@
-import ComplexNumber from './Math/ComplexNumber';
-import Matrix from './Math/Matrix';
-import Number from './Math/Number';
-import RealNumber from './Math/RealNumber';
-import Vector from './Math/Vector';
-import QuantumGate from './Quantum/QuantumGate';
+import ComplexNumber from '../Math/ComplexNumber';
+import Matrix from '../Math/Matrix';
+import Number from '../Math/Number';
+import RealNumber from '../Math/RealNumber';
+import Vector from '../Math/Vector';
+import QuantumGate from './Gates/QuantumGate';
 
 export default class Qubit {
   constructor(public readonly state: Vector<Number>) {

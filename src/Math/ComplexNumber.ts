@@ -1,4 +1,4 @@
-import { primes } from '../../constants';
+import { primes } from '../constants';
 import Matrix from './Matrix';
 import Number from './Number';
 import RealNumber from './RealNumber';

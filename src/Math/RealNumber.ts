@@ -1,4 +1,4 @@
-import gcd from '../../CodeAnalysis/Utils/number';
+import gcd from '../CodeAnalysis/Utils/number';
 import ComplexNumber from './ComplexNumber';
 import Number from './Number';
 
