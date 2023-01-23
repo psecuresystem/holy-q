@@ -18,6 +18,28 @@ export default class Reporter {
     );
   }
 
+  reportInvalidTypeSetting() {
+    this._diagnostics.push(
+      new TypeMismatchError(
+        'Type Mismatch Error',
+        'On X Line, you attempted to re assign a variable but the type you tried to re assign it to was different',
+        [-1, -1],
+        [-1, -1]
+      )
+    );
+  }
+
+  reportAttemptedImmutableReassignment() {
+    this._diagnostics.push(
+      new TypeMismatchError(
+        'Type Mismatch Error',
+        'You tried re assigning to an immutable variable',
+        [-1, -1],
+        [-1, -1]
+      )
+    );
+  }
+
   reportUnexpectedSyntax(message: string) {
     this._diagnostics.push(
       new SyntaxError('Unexpected Syntax', message, [-1, -1], [-1, -1])
@@ -41,5 +63,16 @@ ${error.type}:
       `
       );
     }
+  }
+
+  reportUndefinedName(name: string) {
+    this._diagnostics.push(
+      new SyntaxError(
+        'Unknown Variable',
+        `Unknown Name ${name} Found At Position`,
+        [-1, -1],
+        [-1, -1]
+      )
+    );
   }
 }

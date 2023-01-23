@@ -1,12 +1,18 @@
 import { reporter } from '../..';
 import Reporter from '../Report';
+import AssignmentSyntax from '../Syntax/AssignmentSyntax';
 import BinaryExpressionSyntax from '../Syntax/BinaryExpressionSyntax';
 import ExpressionSyntax from '../Syntax/ExpressionSyntax';
 import GlobalScopeSyntax from '../Syntax/GlobalScopeSyntax';
 import LiteralExpressionSyntax from '../Syntax/LiteralExpressionSyntax';
+import NameExpressionSyntax from '../Syntax/NameExpressionSyntax';
 import ParenthesizedExpressionSyntax from '../Syntax/ParenthesizedExpressionSyntax';
+import ReAssignmentSyntax from '../Syntax/ReAssignmentSyntax';
+import Scope from '../Syntax/Scope';
 import UnaryExpressionSyntax from '../Syntax/UnaryExpressionSyntax';
-import { SyntaxKind } from '../Typings';
+import { SyntaxKind, Variable } from '../Typings';
+import VariableSymbol from '../VariableSymbol';
+import BoundAssignmentExpression from './BoundAssignmentExpression';
 import BoundBinaryExpression from './BoundBinaryExpression';
 import BoundBinaryOperator from './BoundBinaryOperator';
 import BoundExpression from './BoundExpression';
@@ -15,9 +21,15 @@ import BoundLiteralExpression from './BoundLiteralExpression';
 import BoundUnaryExpression from './BoundUnaryExpression';
 import BoundUnaryOperator from './BoundUnaryOperator';
 import BoundUnaryOperatorKind from './BoundUnaryOperatorKind';
+import BoundVariableExpression from './BoundVariableExpression';
 import Types from './Types';
 
 export default class Binder {
+  private _scope: Scope;
+  constructor(private readonly globalScope: Scope) {
+    this._scope = globalScope;
+  }
+
   bindExpression(syntax: ExpressionSyntax): BoundExpression {
     switch (syntax.kind) {
       case SyntaxKind.PARENTHESIZED_EXPRESSION:
@@ -32,10 +44,69 @@ export default class Binder {
         return this.bindBinaryExpression(syntax as BinaryExpressionSyntax);
       case SyntaxKind.GLOBAL_SCOPE_EXPRESSION:
         return this.bindGlobalScopeExpression(syntax as GlobalScopeSyntax);
+      case SyntaxKind.ASSIGNMENT_EXPRESSION:
+        return this.bindAssignmentExpression(syntax as AssignmentSyntax);
+      case SyntaxKind.REASSIGNMENT_EXPRESSION:
+        return this.bindReAssignmentExpression(syntax as ReAssignmentSyntax);
+      case SyntaxKind.NAME_EXPRESSION_SYNTAX:
+        return this.bindNameExpression(syntax as NameExpressionSyntax);
       default:
         reporter.reportUnexpectedSyntax('Unexpected syntax');
         throw new Error('');
     }
+  }
+
+  bindReAssignmentExpression(syntax: ReAssignmentSyntax): BoundExpression {
+    let name = syntax.identifierToken.value;
+    let variable: Variable | undefined;
+    let variableSymbol: VariableSymbol | undefined;
+    this._scope.variables.forEach((value, key) => {
+      if (key.name == name) {
+        variable = value;
+        variableSymbol = key;
+      }
+    });
+    if (!variable || !variableSymbol) {
+      reporter.reportUndefinedName(name);
+      return new BoundLiteralExpression(0);
+    }
+    let newValue = this.bindExpression(syntax.expression);
+    if (newValue.type !== variable.type) {
+      reporter.reportInvalidTypeSetting();
+      return new BoundLiteralExpression(0);
+    }
+    if (variableSymbol.mutable == false) {
+      reporter.reportAttemptedImmutableReassignment();
+      return new BoundLiteralExpression(0);
+    }
+    this._scope.setVariable(variableSymbol, newValue);
+
+    return new BoundAssignmentExpression(variableSymbol, newValue);
+  }
+
+  bindNameExpression(syntax: NameExpressionSyntax): BoundExpression {
+    let name = syntax.identifierToken.value;
+    let variable;
+    this._scope.variables.forEach((value, key) => {
+      if (key.name == name) {
+        variable = value;
+      }
+    });
+    if (!variable) {
+      reporter.reportUndefinedName(name);
+      return new BoundLiteralExpression(0);
+    }
+    return new BoundVariableExpression(name, 'number');
+  }
+
+  bindAssignmentExpression(syntax: AssignmentSyntax): BoundExpression {
+    let name = syntax.identifierToken.value;
+    let expression = this.bindExpression(syntax.expression);
+    let mutable = syntax.mutable;
+    let symbol = new VariableSymbol(name, expression.type, mutable);
+    this._scope.setVariable(symbol, expression);
+
+    return new BoundAssignmentExpression(symbol, expression);
   }
 
   bindLiteralExpression(syntax: LiteralExpressionSyntax) {
