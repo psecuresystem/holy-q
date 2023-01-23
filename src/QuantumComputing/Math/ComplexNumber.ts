@@ -36,11 +36,19 @@ export default class ComplexNumber extends Number {
         depth++;
         continue;
       }
-      finalString += isFirst ? number : ` + ${number}${_labels[depth]}`;
+      let numberDisplays = number.computedValue > 1 || !_labels[depth];
+      let numberSign = isFirst
+        ? number.sign !== '+'
+          ? number.sign
+          : ''
+        : number.sign;
+      finalString += `${numberSign}${numberDisplays ? number : ''}${
+        _labels[depth]
+      }`;
       if (isFirst) isFirst = false;
       depth++;
     }
-    return finalString;
+    return finalString || '0';
   }
 
   add(other: ComplexNumber) {

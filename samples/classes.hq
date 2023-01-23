@@ -1,0 +1,31 @@
+class QuantumRegister {
+    qubits: Qubits
+    size: int
+
+    constructor(size: int) {
+        this.size = size
+        this.qubits = Qubits(size)
+    }
+
+    // Defining a method 'applyGate' that applies a gate to all qubits in the register
+    applyGate(gate: Gate) {
+        for i in 0..size {
+            gate(this.qubits[i])
+        }
+    }
+
+    // Defining a method 'measureAll' that measures all qubits in the register
+    measureAll() {
+        for i in 0..size {
+            Measure(this.qubits[i])
+        }
+    }
+}
+
+let register = new QuantumRegister(5)
+
+// Applying a X-gate to all qubits in the register
+register.applyGate(X)
+
+// Measuring all qubits in the register
+register.measureAll()

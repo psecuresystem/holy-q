@@ -14,7 +14,11 @@ export default class RealNumber extends Number {
     if (this.denominator > 1) {
       return `${this.numerator}/${this.denominator}`;
     }
-    return `${this.numerator}`;
+    return `${Math.abs(this.numerator)}`;
+  }
+
+  get sign() {
+    return this.computedValue >= 0 ? '+' : '-';
   }
 
   get computedValue() {
