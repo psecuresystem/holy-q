@@ -73,7 +73,6 @@ export default class Evaluator {
     }
     if (expression instanceof BoundAssignmentExpression) {
       let value = this.evaluateExpression(expression.value);
-      console.log('value', value);
       return value;
     }
     if (expression instanceof BoundVariableExpression) {
