@@ -1,3 +1,4 @@
+import BoundAssignmentExpression from './Binding/BoundAssignmentExpression';
 import BoundBinaryExpression from './Binding/BoundBinaryExpression';
 import BoundBinaryOperatorKind from './Binding/BoundBinaryOperatorKind';
 import BoundExpression from './Binding/BoundExpression';
@@ -5,9 +6,17 @@ import BoundGlobalScopeExpression from './Binding/BoundGlobalScopeExpression';
 import BoundLiteralExpression from './Binding/BoundLiteralExpression';
 import BoundUnaryExpression from './Binding/BoundUnaryExpression';
 import BoundUnaryOperatorKind from './Binding/BoundUnaryOperatorKind';
+import BoundVariableExpression from './Binding/BoundVariableExpression';
+import Scope from './Syntax/Scope';
 
 export default class Evaluator {
-  constructor(private readonly _root: BoundExpression) {}
+  _scope: Scope;
+  constructor(
+    private readonly _root: BoundExpression,
+    private readonly globalScope: Scope
+  ) {
+    this._scope = globalScope;
+  }
 
   evaluate() {
     return this.evaluateExpression(this._root);
@@ -61,6 +70,14 @@ export default class Evaluator {
         console.log(result);
       }
       return;
+    }
+    if (expression instanceof BoundAssignmentExpression) {
+      let value = this.evaluateExpression(expression.value);
+      console.log('value', value);
+      return value;
+    }
+    if (expression instanceof BoundVariableExpression) {
+      return this.evaluateExpression(this._scope.getVariable(expression.name));
     }
   }
 }

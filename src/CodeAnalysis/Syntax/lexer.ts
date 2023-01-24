@@ -1,5 +1,6 @@
 import { operators, SyntaxKind } from '../Typings';
-import { isNumber, isOperator } from '../Utils/isX';
+import { isChar, isNumber, isOperator } from '../Utils/isX';
+import { getKeywordKind } from './getKeywordKind';
 import Token from './Token';
 
 export default class Lexer {
@@ -108,6 +109,10 @@ export default class Lexer {
             value += '==';
             this.pointer += 2;
             kind = SyntaxKind.EQUALS_EQUALS_TOKEN;
+          } else {
+            value += '=';
+            kind = SyntaxKind.EQUALS_TOKEN;
+            this.pointer++;
           }
           break;
         case ';':
@@ -125,8 +130,19 @@ export default class Lexer {
           this.pointer++;
           kind = SyntaxKind.CLOSE_BRACKET_TOKEN;
           break;
+        case ':':
+          value += ':';
+          this.pointer++;
+          kind = SyntaxKind.COLON_TOKEN;
         default:
-          console.log(this.current == '\n');
+          if (isChar(this.current)) {
+            while (isChar(this.current)) {
+              value += this.current;
+              this.pointer++;
+            }
+            kind = getKeywordKind(value);
+            break;
+          }
           console.error(
             `%c Undefined Token ${this.current} Found at Position ${this.pointer}`,
             'color: #ff0000'
