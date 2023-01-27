@@ -102,6 +102,10 @@ export default class Lexer {
             value += '!=';
             this.pointer += 2;
             kind = SyntaxKind.BANG_EQUALS_TOKEN;
+          } else {
+            value += '!';
+            this.pointer++;
+            kind = SyntaxKind.BANG_TOKEN;
           }
           break;
         case '=':
@@ -129,6 +133,16 @@ export default class Lexer {
           value += ')';
           this.pointer++;
           kind = SyntaxKind.CLOSE_BRACKET_TOKEN;
+          break;
+        case '{':
+          value += '{';
+          this.pointer++;
+          kind = SyntaxKind.OPEN_CURLY_BRACE_TOKEN;
+          break;
+        case '}':
+          value += '}';
+          this.pointer++;
+          kind = SyntaxKind.CLOSE_CURLY_BRACE_TOKEN;
           break;
         case ':':
           value += ':';

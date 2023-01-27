@@ -1,3 +1,4 @@
+import Types from './Binding/Types';
 import Error from './Errors/Error';
 import SyntaxError from './Errors/SyntaxError';
 import TypeMismatchError from './Errors/TypeMismatchError';
@@ -70,6 +71,56 @@ ${error.type}:
       new SyntaxError(
         'Unknown Variable',
         `Unknown Name ${name} Found At Position`,
+        [-1, -1],
+        [-1, -1]
+      )
+    );
+  }
+
+  reportWrongArgumentsCount(name: string, current: number, expected: number) {
+    this._diagnostics.push(
+      new SyntaxError(
+        'Wrong Argument Count',
+        `You provided ${current} arguments for function ${name} while it expected ${expected} arguments`,
+        [-1, -1],
+        [-1, -1]
+      )
+    );
+  }
+
+  reportUndefinedFunction(name: string) {
+    this._diagnostics.push(
+      new SyntaxError(
+        'Unknown Function',
+        `You attempted to call function ${name} but it cant be found`,
+        [-1, -1],
+        [-1, -1]
+      )
+    );
+  }
+
+  reportInvalidIfStatementCondition(type: string) {
+    this._diagnostics.push(
+      new SyntaxError(
+        'Invalid Condition',
+        `The If Statement condition at line x is invalid. Expected type boolean got ${type}`,
+        [-1, -1],
+        [-1, -1]
+      )
+    );
+  }
+
+  reportInvalidParameterType(
+    functionName: string,
+    current: Types,
+    target: Types
+  ) {
+    this._diagnostics.push(
+      new SyntaxError(
+        'Invalid Parameter',
+        `
+When calling ${functionName}, the parameter of type ${target} was expected. Got type ${current}
+      `,
         [-1, -1],
         [-1, -1]
       )

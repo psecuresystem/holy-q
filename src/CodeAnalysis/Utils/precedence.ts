@@ -4,6 +4,7 @@ export function getUnaryOperatorPrecedence(kind: SyntaxKind) {
   switch (kind) {
     case SyntaxKind.PLUS_TOKEN:
     case SyntaxKind.MINUS_TOKEN:
+    case SyntaxKind.BANG_TOKEN:
       return 6;
     default:
       return 0;

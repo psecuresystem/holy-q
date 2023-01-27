@@ -143,6 +143,7 @@ export default class ComplexNumber extends Number {
 
   private reduce() {
     if (
+      this.value.allItems.length > 4 &&
       this.value.allItems
         .slice(4)
         .reduce((acc, val) => acc.add(val) as RealNumber).computedValue == 0

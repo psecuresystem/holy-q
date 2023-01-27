@@ -6,13 +6,19 @@ import {
 } from '../Utils/precedence';
 import AssignmentSyntax from './AssignmentSyntax';
 import BinaryExpressionSyntax from './BinaryExpressionSyntax';
+import BlockStatementSyntax from './BlockStatementSyntax';
+import CallExpressionSyntax from './CallExpressionSyntax';
+import ExpressionStatementSyntax from './ExpressionStatementSyntax';
 import ExpressionSyntax from './ExpressionSyntax';
 import GlobalScopeSyntax from './GlobalScopeSyntax';
+import IfStatementSyntax from './IfStatementSyntax';
 import Lexer from './lexer';
 import LiteralExpressionSyntax from './LiteralExpressionSyntax';
 import NameExpressionSyntax from './NameExpressionSyntax';
 import ParenthesizedExpressionSyntax from './ParenthesizedExpressionSyntax';
 import ReAssignmentSyntax from './ReAssignmentSyntax';
+import SeperatedSyntaxList from './SeperatedSyntaxList';
+import StatementSyntax from './StatementSyntax';
 import SyntaxNode from './SyntaxNode';
 import SyntaxTree from './SyntaxTree';
 import Token from './Token';
@@ -32,10 +38,10 @@ export default class Parser {
   }
 
   get currentToken(): Token {
-    if (this.pointer >= this._statement.length) {
-      return this._statement[this._statement.length - 1];
+    if (this.pointer >= this.tokens.length) {
+      return this.tokens[this.tokens.length - 1];
     }
-    return this._statement[this.pointer];
+    return this.tokens[this.pointer];
   }
 
   nextToken(): Token {
@@ -45,10 +51,10 @@ export default class Parser {
   }
 
   peek(range: number): Token {
-    if (this.pointer + range >= this._statement.length) {
-      return this._statement[this._statement.length - 1];
+    if (this.pointer + range >= this.tokens.length) {
+      return this.tokens[this.tokens.length - 1];
     }
-    return this._statement[this.pointer + range];
+    return this.tokens[this.pointer + range];
   }
 
   match(kind: SyntaxKind): Token {
@@ -65,19 +71,21 @@ export default class Parser {
   }
 
   *getStatements(): IterableIterator<Token[]> {
-    let statement: Token[] = [];
+    let statements: Token[] = [];
     for (const token of this.tokens) {
       if (token.kind == SyntaxKind.END_OF_STATEMENT_TOKEN) {
-        yield statement;
-        statement = [];
+        yield statements;
+        statements = [];
       } else if (token.kind == SyntaxKind.END_OF_FILE_TOKEN) {
         this.eof = token;
-        if (statement.length == 0) return;
-        return yield statement;
+        if (statements.length == 0) return;
+        return yield statements;
       } else {
-        statement.push(token);
+        statements.push(token);
       }
     }
+    console.log('statements', statements);
+    return statements;
   }
 
   parse() {
@@ -88,17 +96,79 @@ export default class Parser {
 
   parseStatements(): ExpressionSyntax[] {
     const expressions = [];
-    for (let statement of this.getStatements()) {
-      this._statement = statement;
-      this.pointer = 0;
-      const expression = this.parseExpression();
+    while (
+      this.currentToken.kind != SyntaxKind.END_OF_FILE_TOKEN &&
+      this.currentToken.kind != SyntaxKind.CLOSE_CURLY_BRACE_TOKEN
+    ) {
+      let expression = this.parseStatement();
+      if (
+        (this.currentToken.kind as any) != SyntaxKind.END_OF_FILE_TOKEN &&
+        (this.currentToken.kind as any) != SyntaxKind.CLOSE_CURLY_BRACE_TOKEN
+      ) {
+        this.match(SyntaxKind.END_OF_STATEMENT_TOKEN);
+      }
       expressions.push(expression);
     }
     return expressions;
   }
 
-  parseExpression(parentPrecedence = 0): ExpressionSyntax {
+  parseStatement(parentPrecedence = 0): StatementSyntax {
+    switch (this.currentToken.kind) {
+      case SyntaxKind.IF_TOKEN:
+        return this.parseIfStatement();
+      case SyntaxKind.OPEN_CURLY_BRACE_TOKEN:
+        return this.parseBlockStatement();
+      default:
+        return this.parseExpressionStatement(parentPrecedence);
+    }
+  }
+
+  parseExpressionStatement(parentPrecedence = 0) {
+    let expression = this.parseExpression(parentPrecedence);
+    return new ExpressionStatementSyntax(expression);
+  }
+
+  parseExpression(parentPrecedence = 0) {
     return this.parseAssignmentExpression(parentPrecedence);
+  }
+
+  parseBlockStatement(): BlockStatementSyntax {
+    const statements = [];
+    let open_curly_brace = this.match(SyntaxKind.OPEN_CURLY_BRACE_TOKEN);
+    while (
+      this.currentToken.kind != SyntaxKind.END_OF_FILE_TOKEN &&
+      this.currentToken.kind != SyntaxKind.CLOSE_CURLY_BRACE_TOKEN
+    ) {
+      let statement = this.parseStatement();
+      if (
+        (this.currentToken.kind as any) != SyntaxKind.END_OF_FILE_TOKEN &&
+        (this.currentToken.kind as any) != SyntaxKind.CLOSE_CURLY_BRACE_TOKEN
+      ) {
+        this.match(SyntaxKind.END_OF_STATEMENT_TOKEN);
+      }
+      statements.push(statement);
+    }
+    let close_curly_brace = this.match(SyntaxKind.CLOSE_CURLY_BRACE_TOKEN);
+    return new BlockStatementSyntax(
+      open_curly_brace,
+      statements,
+      close_curly_brace
+    );
+  }
+
+  parseIfStatement(): StatementSyntax {
+    let ifToken = this.match(SyntaxKind.IF_TOKEN);
+    let open_parenthesis = this.match(SyntaxKind.OPEN_BRACKET_TOKEN);
+    let condition = this.parseStatement();
+    let close_parenthesis = this.match(SyntaxKind.CLOSE_BRACKET_TOKEN);
+    let block = this.parseBlockStatement();
+    return new IfStatementSyntax(
+      ifToken,
+      open_parenthesis,
+      condition,
+      block,
+      close_parenthesis
+    );
   }
 
   parseAssignmentExpression(parentPrecedence = 0): ExpressionSyntax {
@@ -159,16 +229,56 @@ export default class Parser {
     return left;
   }
 
+  parseNameExpression() {
+    let identifierToken = this.nextToken();
+    return new NameExpressionSyntax(identifierToken);
+  }
+
+  parseArguments() {
+    let nodes = [];
+    while (
+      this.currentToken.kind !== SyntaxKind.CLOSE_BRACKET_TOKEN &&
+      this.currentToken.kind !== SyntaxKind.END_OF_FILE_TOKEN
+    ) {
+      let argument = this.parseBinaryExpression();
+      nodes.push(argument);
+      if ((this.currentToken.kind as any) !== SyntaxKind.CLOSE_BRACKET_TOKEN) {
+        let comma = this.match(SyntaxKind.COMMA_TOKEN);
+        nodes.push(comma);
+      }
+    }
+    return new SeperatedSyntaxList(nodes);
+  }
+
+  parseCallExpression() {
+    let identifier = this.match(SyntaxKind.IDENTIFIER_TOKEN);
+    let open_parenthesis = this.match(SyntaxKind.OPEN_BRACKET_TOKEN);
+    let callArguments = this.parseArguments();
+    let closeParenthesis = this.match(SyntaxKind.CLOSE_BRACKET_TOKEN);
+    return new CallExpressionSyntax(
+      identifier,
+      open_parenthesis,
+      callArguments,
+      closeParenthesis
+    );
+  }
+
+  parseNameOrCallExpression(): ExpressionSyntax {
+    if (this.peek(1).kind == SyntaxKind.OPEN_BRACKET_TOKEN) {
+      return this.parseCallExpression();
+    }
+    return this.parseNameExpression();
+  }
+
   parsePrimaryExpression(): ExpressionSyntax {
     switch (this.currentToken.kind) {
       case SyntaxKind.OPEN_BRACKET_TOKEN:
         var left = this.nextToken();
-        var expression = this.parseExpression();
+        var expression = this.parseStatement();
         var right = this.match(SyntaxKind.CLOSE_BRACKET_TOKEN);
         return new ParenthesizedExpressionSyntax(left, expression, right);
       case SyntaxKind.IDENTIFIER_TOKEN:
-        let identifierToken = this.nextToken();
-        return new NameExpressionSyntax(identifierToken);
+        return this.parseNameOrCallExpression();
       default:
         let numberToken = this.match(SyntaxKind.LITERAL_TOKEN);
         return new LiteralExpressionSyntax(numberToken);

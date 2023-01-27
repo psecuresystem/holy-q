@@ -1,4 +1,4 @@
-import Types from './Binding/Types';
+import Types from '../Binding/Types';
 
 export default class VariableSymbol {
   constructor(

@@ -8,6 +8,8 @@ export function getKeywordKind(keyword: string): SyntaxKind {
       return SyntaxKind.MUT_TOKEN;
     case 'int':
       return SyntaxKind.INT_TOKEN;
+    case 'if':
+      return SyntaxKind.IF_TOKEN;
     case 'String':
       return SyntaxKind.STRING_TOKEN;
     default:

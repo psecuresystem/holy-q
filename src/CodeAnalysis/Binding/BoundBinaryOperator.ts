@@ -15,56 +15,56 @@ export default class BoundBinaryOperator {
     new BoundBinaryOperator(
       SyntaxKind.PLUS_TOKEN,
       BoundBinaryOperatorKind.Addition,
-      'number'
+      Types.Number
     ),
     new BoundBinaryOperator(
       SyntaxKind.MINUS_TOKEN,
       BoundBinaryOperatorKind.Subtraction,
-      'number'
+      Types.Number
     ),
     new BoundBinaryOperator(
       SyntaxKind.STAR_TOKEN,
       BoundBinaryOperatorKind.Multiplication,
-      'number'
+      Types.Number
     ),
     new BoundBinaryOperator(
       SyntaxKind.SLASH_TOKEN,
       BoundBinaryOperatorKind.Division,
-      'number'
+      Types.Number
     ),
     new BoundBinaryOperator(
       SyntaxKind.AMPERSAND_AMPERSAND_TOKEN,
       BoundBinaryOperatorKind.LogicalAnd,
-      'boolean'
+      Types.Boolean
     ),
     new BoundBinaryOperator(
       SyntaxKind.PIPE_PIPE_TOKEN,
       BoundBinaryOperatorKind.LogicalOr,
-      'boolean'
+      Types.Boolean
     ),
     new BoundBinaryOperator(
       SyntaxKind.EQUALS_EQUALS_TOKEN,
       BoundBinaryOperatorKind.Equals,
-      'boolean'
+      Types.Boolean
     ),
     new BoundBinaryOperator(
       SyntaxKind.BANG_EQUALS_TOKEN,
       BoundBinaryOperatorKind.NotEquals,
-      'boolean'
+      Types.Boolean
     ),
     new BoundBinaryOperator(
       SyntaxKind.EQUALS_EQUALS_TOKEN,
       BoundBinaryOperatorKind.Equals,
-      'number',
-      'number',
-      'boolean'
+      Types.Number,
+      Types.Number,
+      Types.Boolean
     ),
     new BoundBinaryOperator(
       SyntaxKind.BANG_EQUALS_TOKEN,
       BoundBinaryOperatorKind.NotEquals,
-      'number',
-      'number',
-      'boolean'
+      Types.Number,
+      Types.Number,
+      Types.Boolean
     ),
   ];
 

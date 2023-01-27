@@ -14,12 +14,17 @@ export default class BoundUnaryOperator {
     new BoundUnaryOperator(
       SyntaxKind.PLUS_TOKEN,
       BoundUnaryOperatorKind.Identity,
-      'number'
+      Types.Number
     ),
     new BoundUnaryOperator(
       SyntaxKind.MINUS_TOKEN,
       BoundUnaryOperatorKind.Negation,
-      'number'
+      Types.Number
+    ),
+    new BoundUnaryOperator(
+      SyntaxKind.BANG_TOKEN,
+      BoundUnaryOperatorKind.LogicalNot,
+      Types.Qubit
     ),
   ];
 

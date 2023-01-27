@@ -26,6 +26,19 @@ export default class Qubit {
     );
   }
 
+  toString() {
+    if (
+      this.state.getItem(0).computedValue == 0 ||
+      this.state.getItem(1).computedValue == 0
+    ) {
+      return `${this.state.getItem(0)}|0> + ${this.state.getItem(1)}|1>`;
+    }
+    if (this.state.getItem(0).computedValue < 0) {
+      return `|->`;
+    }
+    return `|+>`;
+  }
+
   apply(gate: QuantumGate): Qubit {
     const result = gate.matrix.multiply(
       Matrix.fromVector(this.state, 'vertical')

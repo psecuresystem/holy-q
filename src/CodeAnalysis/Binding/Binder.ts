@@ -2,6 +2,7 @@ import { reporter } from '../..';
 import Reporter from '../Report';
 import AssignmentSyntax from '../Syntax/AssignmentSyntax';
 import BinaryExpressionSyntax from '../Syntax/BinaryExpressionSyntax';
+import CallExpressionSyntax from '../Syntax/CallExpressionSyntax';
 import ExpressionSyntax from '../Syntax/ExpressionSyntax';
 import GlobalScopeSyntax from '../Syntax/GlobalScopeSyntax';
 import LiteralExpressionSyntax from '../Syntax/LiteralExpressionSyntax';
@@ -10,24 +11,77 @@ import ParenthesizedExpressionSyntax from '../Syntax/ParenthesizedExpressionSynt
 import ReAssignmentSyntax from '../Syntax/ReAssignmentSyntax';
 import Scope from '../Syntax/Scope';
 import UnaryExpressionSyntax from '../Syntax/UnaryExpressionSyntax';
-import { SyntaxKind, Variable } from '../Typings';
-import VariableSymbol from '../VariableSymbol';
+import { SyntaxKind } from '../Typings';
+import VariableSymbol from '../Symbols/VariableSymbol';
 import BoundAssignmentExpression from './BoundAssignmentExpression';
 import BoundBinaryExpression from './BoundBinaryExpression';
 import BoundBinaryOperator from './BoundBinaryOperator';
 import BoundExpression from './BoundExpression';
-import BoundGlobalScopeExpression from './BoundGlobalScopeExpression';
+import BoundGlobalScope from './BoundGlobalScope';
 import BoundLiteralExpression from './BoundLiteralExpression';
 import BoundUnaryExpression from './BoundUnaryExpression';
 import BoundUnaryOperator from './BoundUnaryOperator';
 import BoundUnaryOperatorKind from './BoundUnaryOperatorKind';
 import BoundVariableExpression from './BoundVariableExpression';
 import Types from './Types';
+import BoundCallExpression from './BoundCallExpression';
+import IfExpressionSyntax from '../Syntax/IfStatementSyntax';
+import BlockExpressionSyntax from '../Syntax/BlockStatementSyntax';
+import BoundBlockStatement from './BoundBlockStatement';
+import BoundStatement from './BoundStatement';
+import BoundExpressionStatement from './BoundExpressionStatement';
+import ExpressionStatementSyntax from '../Syntax/ExpressionStatementSyntax';
+import BoundIfStatement from './BoundIfStatement';
 
 export default class Binder {
   private _scope: Scope;
   constructor(private readonly globalScope: Scope) {
     this._scope = globalScope;
+  }
+
+  bindStatement(syntax: ExpressionSyntax): BoundStatement {
+    switch (syntax.kind) {
+      case SyntaxKind.IF_STATEMENT_EXPRESSION:
+        return this.bindIfStatement(syntax as IfExpressionSyntax);
+      case SyntaxKind.BLOCK_EXPRESSION:
+        return this.bindBlockSyntax(syntax as BlockExpressionSyntax);
+      case SyntaxKind.EXPRESSION_STATEMENT:
+        return this.bindExpressionStatement(
+          syntax as ExpressionStatementSyntax
+        );
+      default:
+        reporter.reportUnexpectedSyntax('Unexpected syntax');
+        throw new Error(`Unexpected statement ${syntax.kind}`);
+    }
+  }
+
+  bindIfStatement(syntax: IfExpressionSyntax): BoundStatement {
+    let condition = this.bindExpressionStatement(
+      syntax.condition as ExpressionStatementSyntax
+    );
+    let block = this.bindBlockSyntax(syntax.statements);
+    if (condition.expression.type !== Types.Boolean) {
+      reporter.reportInvalidIfStatementCondition(condition.expression.type);
+    }
+    return new BoundIfStatement(condition.expression, block);
+  }
+
+  bindBlockSyntax(syntax: BlockExpressionSyntax): BoundStatement {
+    let statements = [];
+    this._scope = new Scope(this._scope);
+
+    for (const statementSyntax of syntax.statements) {
+      const statement = this.bindStatement(statementSyntax);
+      statements.push(statement);
+    }
+
+    this._scope = this._scope.parent!;
+    return new BoundBlockStatement(statements);
+  }
+
+  bindExpressionStatement(syntax: ExpressionStatementSyntax) {
+    let expression = this.bindExpression(syntax.expression);
+    return new BoundExpressionStatement(expression);
   }
 
   bindExpression(syntax: ExpressionSyntax): BoundExpression {
@@ -50,28 +104,59 @@ export default class Binder {
         return this.bindReAssignmentExpression(syntax as ReAssignmentSyntax);
       case SyntaxKind.NAME_EXPRESSION_SYNTAX:
         return this.bindNameExpression(syntax as NameExpressionSyntax);
+      case SyntaxKind.CALL_EXPRESSION:
+        return this.bindCallExpression(syntax as CallExpressionSyntax);
       default:
         reporter.reportUnexpectedSyntax('Unexpected syntax');
-        throw new Error('');
+        throw new Error(`Unexpected Syntax ${syntax.kind}`);
     }
+  }
+
+  bindCallExpression(syntax: CallExpressionSyntax): BoundExpression {
+    const boundArguments = [];
+    for (const argument of syntax.functionArguments.getNodes()) {
+      const boundArgument = this.bindExpression(argument);
+      boundArguments.push(boundArgument);
+    }
+    let func = this._scope.getFunction(syntax.identifier.value);
+    if (!func) {
+      reporter.reportUndefinedFunction(syntax.identifier.value);
+      return new BoundLiteralExpression(0);
+    }
+    if (syntax.functionArguments.count != func.parameters.length) {
+      reporter.reportWrongArgumentsCount(
+        syntax.identifier.value,
+        syntax.functionArguments.count,
+        func.parameters.length
+      );
+      return new BoundLiteralExpression(0);
+    }
+
+    for (let i = 0; i < syntax.functionArguments.count; i++) {
+      let argument = boundArguments[i];
+      let parameter = func.parameters[i];
+      if (argument.type != parameter.type) {
+        reporter.reportInvalidParameterType(
+          syntax.identifier.value,
+          argument.type,
+          parameter.type
+        );
+        return new BoundLiteralExpression(0);
+      }
+    }
+
+    return new BoundCallExpression(func, boundArguments);
   }
 
   bindReAssignmentExpression(syntax: ReAssignmentSyntax): BoundExpression {
     let name = syntax.identifierToken.value;
-    let variable: Variable | undefined;
-    let variableSymbol: VariableSymbol | undefined;
-    this._scope.variables.forEach((value, key) => {
-      if (key.name == name) {
-        variable = value;
-        variableSymbol = key;
-      }
-    });
-    if (!variable || !variableSymbol) {
+    let variableSymbol = this._scope.variables.get(name);
+    if (!variableSymbol) {
       reporter.reportUndefinedName(name);
       return new BoundLiteralExpression(0);
     }
     let newValue = this.bindExpression(syntax.expression);
-    if (newValue.type !== variable.type) {
+    if (newValue.type !== variableSymbol.type) {
       reporter.reportInvalidTypeSetting();
       return new BoundLiteralExpression(0);
     }
@@ -79,24 +164,21 @@ export default class Binder {
       reporter.reportAttemptedImmutableReassignment();
       return new BoundLiteralExpression(0);
     }
-    this._scope.setVariable(variableSymbol, newValue);
+    this._scope.setVariable(variableSymbol);
 
     return new BoundAssignmentExpression(variableSymbol, newValue);
   }
 
   bindNameExpression(syntax: NameExpressionSyntax): BoundExpression {
     let name = syntax.identifierToken.value;
-    let variable;
-    this._scope.variables.forEach((value, key) => {
-      if (key.name == name) {
-        variable = value;
-      }
-    });
-    if (!variable) {
+    let variableSymbol: VariableSymbol | undefined = this._scope.variables.get(
+      syntax.identifierToken.value
+    );
+    if (!variableSymbol) {
       reporter.reportUndefinedName(name);
       return new BoundLiteralExpression(0);
     }
-    return new BoundVariableExpression(name, 'number');
+    return new BoundVariableExpression(variableSymbol, variableSymbol.type);
   }
 
   bindAssignmentExpression(syntax: AssignmentSyntax): BoundExpression {
@@ -104,7 +186,7 @@ export default class Binder {
     let expression = this.bindExpression(syntax.expression);
     let mutable = syntax.mutable;
     let symbol = new VariableSymbol(name, expression.type, mutable);
-    this._scope.setVariable(symbol, expression);
+    this._scope.createVariable(symbol);
 
     return new BoundAssignmentExpression(symbol, expression);
   }
@@ -142,7 +224,7 @@ export default class Binder {
 
     if (boundOperator == null) {
       reporter.reportTypeMismatchError(
-        `Binary operator '${syntax.operatorToken}' is not defined for types ${boundLeft.type} and ${boundRight.type}.`
+        `Binary operator '${syntax.operatorToken.kind}' is not defined for types ${boundLeft.type} and ${boundRight.type}.`
       );
       return boundLeft;
     }
@@ -151,7 +233,7 @@ export default class Binder {
   }
 
   bindUnaryOperatorKind(kind: SyntaxKind, operandType: Types) {
-    if (operandType != 'number') return null;
+    if (operandType != Types.Number) return null;
     switch (kind) {
       case SyntaxKind.PLUS_TOKEN:
         return BoundUnaryOperatorKind.Identity;
@@ -163,11 +245,11 @@ export default class Binder {
   }
 
   bindGlobalScopeExpression(syntax: GlobalScopeSyntax): BoundExpression {
-    const expressions = [];
-    for (const expression of syntax.expressions) {
-      expressions.push(this.bindExpression(expression));
+    const statements = [];
+    for (const statement of syntax.expressions) {
+      statements.push(this.bindStatement(statement));
     }
-    return new BoundGlobalScopeExpression(expressions);
+    return new BoundGlobalScope(statements);
   }
 
   bindParenthesizedExpression(syntax: ParenthesizedExpressionSyntax) {
